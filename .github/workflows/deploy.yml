@@ -1,0 +1,64 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─── Checkout ────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─── Setup Flutter ───────────────────────────────────────
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      # ─── Cache dependencies ─────────────────────────────────
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            ~/.gradle/caches
+            build/
+          key: ${{ runner.os }}-flutter-deps-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-deps-
+
+      # ─── Install dependencies ────────────────────────────────
+      - name: Install dependencies
+        run: flutter pub get
+
+      # ─── Analyze (optional safety check) ───────────────────
+      - name: Analyze code
+        run: flutter analyze || true
+
+      # ─── Build web ──────────────────────────────────────────
+      - name: Build web app
+        run: flutter build web --release --base-href /faceattend-admin/
+
+      # ─── Verify build output ────────────────────────────────
+      - name: Verify build output
+        run: |
+          test -f build/web/index.html || exit 1
+          echo "Build verified successfully!"
+
+      # ─── Deploy to GitHub Pages ─────────────────────────────
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
+          user_name: 'Govind Tank'
+          user_email: 'govindtank600@gmail.com'
+          commit_message: 'chore: deploy FaceAttend Admin v1.0.0'
