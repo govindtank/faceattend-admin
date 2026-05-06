@@ -40,7 +40,7 @@ class FaceAttendAdminApp extends StatelessWidget {
             elevation: 0,
             scrolledUnderElevation: 1,
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 1,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
